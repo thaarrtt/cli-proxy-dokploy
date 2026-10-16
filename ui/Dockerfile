@@ -1,23 +1,29 @@
 # ─────────────────────────────────────────────────────────────
 # Stage 1 — Build the single-file management HTML with Bun/Vite
+# The source is cloned directly from GitHub — no local copy needed.
 # ─────────────────────────────────────────────────────────────
 FROM oven/bun:1.3-alpine AS builder
 
 ARG VERSION=latest
+ARG REPO=https://github.com/router-for-me/Cli-Proxy-API-Management-Center.git
 ENV VERSION=${VERSION}
+
+# git is needed to clone the source
+RUN apk add --no-cache git
 
 WORKDIR /app
 
-# Install dependencies first (layer-cached)
-COPY package.json bun.lock ./
+# Clone the upstream repo directly inside the build stage.
+# This makes the Dockerfile fully self-contained for Dokploy.
+RUN git clone --depth=1 ${REPO} .
+
+# Install dependencies
 RUN bun install --frozen-lockfile
 
-# Copy source and build
-COPY . .
+# Build — vite-plugin-singlefile produces a single dist/index.html
 RUN bun run build
 
-# The Vite build produces a single dist/index.html (via vite-plugin-singlefile)
-# Rename it to management.html to match the backend's expected path
+# Rename to management.html (matches the backend's expected path)
 RUN mv /app/dist/index.html /app/dist/management.html
 
 # ─────────────────────────────────────────────────────────────
@@ -28,10 +34,10 @@ FROM nginx:1.27-alpine AS runner
 # Remove the default Nginx welcome page
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy custom Nginx config
+# Only the nginx.conf from our build context is needed here
 COPY nginx.conf /etc/nginx/conf.d/management.conf
 
-# Copy the built single-file HTML
+# Copy the compiled single-file HTML from builder stage
 COPY --from=builder /app/dist/management.html /usr/share/nginx/html/management.html
 
 EXPOSE 80
