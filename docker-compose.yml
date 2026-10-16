@@ -1,7 +1,4 @@
 services:
-  # ─────────────────────────────────────────────────────────────
-  # CLI Proxy API  (Go backend — serves proxy + management API)
-  # ─────────────────────────────────────────────────────────────
   cli-proxy-api:
     image: eceasy/cli-proxy-api:latest
     pull_policy: always
@@ -12,38 +9,10 @@ services:
     environment:
       DEPLOY: "docker"
     volumes:
-      # Seed config — mounted as a file, not a directory.
-      # The backend reads/writes config.yaml at /CLIProxyAPI/config.yaml
       - ./config/config.yaml:/CLIProxyAPI/config.yaml
-      # Persistent auth files directory
       - cli-proxy-auths:/CLIProxyAPI/auths
     ports:
       - "${API_PORT:-8317}:8317"
-    networks:
-      - cli-proxy-net
-
-  # ─────────────────────────────────────────────────────────────
-  # Management UI  (React/Vite single-file HTML — served by Nginx)
-  # Builds by cloning source from GitHub; only needs nginx.conf locally.
-  # ─────────────────────────────────────────────────────────────
-  cli-proxy-ui:
-    build:
-      context: ./ui
-      dockerfile: Dockerfile
-      args:
-        VERSION: ${UI_VERSION:-latest}
-    container_name: cli-proxy-ui
-    restart: unless-stopped
-    ports:
-      - "${UI_PORT:-8080}:80"
-    networks:
-      - cli-proxy-net
-    depends_on:
-      - cli-proxy-api
 
 volumes:
   cli-proxy-auths:
-
-networks:
-  cli-proxy-net:
-    driver: bridge
