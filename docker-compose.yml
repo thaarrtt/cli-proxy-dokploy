@@ -1,0 +1,55 @@
+services:
+  # ─────────────────────────────────────────────────────────────
+  # CLI Proxy API  (Go backend — serves proxy + management API)
+  # ─────────────────────────────────────────────────────────────
+  cli-proxy-api:
+    image: eceasy/cli-proxy-api:latest
+    pull_policy: always
+    container_name: cli-proxy-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DEPLOY: "docker"
+    volumes:
+      # Persistent config & auth files
+      - cli-proxy-config:/app/config
+      - cli-proxy-auths:/app/auths
+    ports:
+      - "${API_PORT:-8317}:8317"
+    networks:
+      - cli-proxy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8317/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ─────────────────────────────────────────────────────────────
+  # Management UI  (React/Vite single-file HTML — served by Nginx)
+  # Builds from source; the output is a single management.html
+  # ─────────────────────────────────────────────────────────────
+  cli-proxy-ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${UI_VERSION:-latest}
+    container_name: cli-proxy-ui
+    restart: unless-stopped
+    ports:
+      - "${UI_PORT:-8080}:80"
+    networks:
+      - cli-proxy-net
+    depends_on:
+      cli-proxy-api:
+        condition: service_healthy
+
+volumes:
+  cli-proxy-config:
+  cli-proxy-auths:
+
+networks:
+  cli-proxy-net:
+    driver: bridge

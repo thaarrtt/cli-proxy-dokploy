@@ -1,0 +1,7 @@
+# Local secrets — never commit
+.env
+
+# Docker build cache
+ui/node_modules/
+ui/.bun/
+ui/dist/
