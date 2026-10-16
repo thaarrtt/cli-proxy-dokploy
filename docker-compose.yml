@@ -12,9 +12,11 @@ services:
     environment:
       DEPLOY: "docker"
     volumes:
-      # Persistent config & auth files
-      - cli-proxy-config:/app/config
-      - cli-proxy-auths:/app/auths
+      # Seed config — mounted as a file, not a directory.
+      # The backend reads/writes config.yaml at /CLIProxyAPI/config.yaml
+      - ./config/config.yaml:/CLIProxyAPI/config.yaml
+      # Persistent auth files directory
+      - cli-proxy-auths:/CLIProxyAPI/auths
     ports:
       - "${API_PORT:-8317}:8317"
     networks:
@@ -40,7 +42,6 @@ services:
       - cli-proxy-api
 
 volumes:
-  cli-proxy-config:
   cli-proxy-auths:
 
 networks:

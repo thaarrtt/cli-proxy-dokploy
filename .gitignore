@@ -5,3 +5,8 @@
 ui/node_modules/
 ui/.bun/
 ui/dist/
+
+# Config may contain real API keys after first use
+# Keep config.yaml tracked (it's the seed), but ignore backups/runtime files
+config/*.bak
+config/*.lock

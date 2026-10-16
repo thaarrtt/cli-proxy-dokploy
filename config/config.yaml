@@ -1,0 +1,33 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Minimal starter config for CLI Proxy API v8
+# This file is mounted into the container at /CLIProxyAPI/config.yaml
+# Edit via the Management UI after first boot, or update this file directly.
+# ──────────────────────────────────────────────────────────────────────────────
+config-version: 8
+
+server:
+  host: ""
+  port: 8317
+
+management:
+  # REQUIRED: set a strong key — this protects the entire management API.
+  # Can also be set via MANAGEMENT_PASSWORD env var in .env
+  secret-key: ""          # ← fill this in, or it's read from MANAGEMENT_PASSWORD env
+
+  # Must be true when accessing management from a domain (Cloudflare / Dokploy proxy)
+  allow-remote: true
+
+  # The Management UI is hosted separately (our cli-proxy-ui container),
+  # so we disable the auto-downloaded bundled panel to avoid conflicts.
+  disable-control-panel: false
+
+  panel-github-repository: "https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
+
+# Client API keys — keys that callers use to talk to the proxy
+access:
+  api-keys:
+    - "change-me-client-key-1"
+
+# Add your upstream AI provider keys below after first boot,
+# or configure them through the Management UI.
+api-keys: []
